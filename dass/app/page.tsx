@@ -1,12 +1,13 @@
+// app/page.tsx
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import LogoutButton from './components/LogoutButton';
+import TicketDashboard from './components/TicketDashboard';
 
 export default async function HomePage() {
   const cookieStore = await cookies();
   const sessionToken = cookieStore.get('session_token');
 
-  // Dacă nu are token, îl redirecționăm la login (protecția rutei)
   if (!sessionToken) {
     redirect('/login');
   }
@@ -14,35 +15,40 @@ export default async function HomePage() {
   let user = null;
 
   try {
-    // VULNERABILITATEA 4.5: Decodăm token-ul slab direct din Base64
+    // Aici decodăm informațiile de sesiune
     const decodedPayload = Buffer.from(sessionToken.value, 'base64').toString('utf-8');
     user = JSON.parse(decodedPayload);
   } catch (error) {
-    // Dacă token-ul e invalid/corupt, îl trimitem la login
     redirect('/login');
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-      <div className="bg-white p-10 rounded-xl shadow-lg text-center max-w-lg w-full border border-gray-100">
-        <h1 className="text-4xl font-extrabold text-blue-600 mb-4">
-          Salut, {user?.email}! 👋
-        </h1>
-        <p className="text-gray-600 text-lg mb-8">
-          Bine ai venit în aplicație. Te-ai autentificat cu succes.
-        </p>
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center py-10 px-4">
+      {/* Container mai lat pentru a face loc dashboard-ului */}
+      <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl border border-gray-200">
         
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 text-left">
-          <p className="text-sm text-yellow-800 font-semibold">
-            Detalii sesiune vulnerabilă:
-          </p>
-          <ul className="text-xs text-yellow-700 mt-2 list-disc pl-5">
-            <li>Rol curent: <span className="font-bold">{user?.role}</span></li>
-            <li>ID User: <span className="font-mono">{user?.id}</span></li>
-          </ul>
+        {/* Header-ul paginii */}
+        <div className="flex justify-between items-center border-b pb-4">
+          <div>
+            <h1 className="text-3xl font-extrabold text-blue-600">
+              Salut, {user?.email.split('@')[0]}! 👋
+            </h1>
+            <p className="text-gray-600 mt-1">
+              Acesta este spațiul tău securizat de lucru Deskly.
+            </p>
+          </div>
+          
+          <div className="text-right">
+             <p className="text-xs text-gray-400 mb-2">Autentificat ca: <span className="font-bold text-gray-600">{user?.role}</span></p>
+             <div className="w-32">
+               <LogoutButton />
+             </div>
+          </div>
         </div>
 
-        <LogoutButton />
+        {/* Aici introducem componenta de Tichete și Căutare */}
+        <TicketDashboard />
+
       </div>
     </div>
   );
