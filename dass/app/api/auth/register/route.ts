@@ -10,8 +10,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Email și parola sunt obligatorii' }, { status: 400 });
     }
 
-    // FIX 4.1: Password Policy (Lungime minimă și complexitate)
-    // Respingem parolele scurte pentru a preveni brute force ușor
+    // FIX 4.1: Password Policy (Lungime minima si complexitate)
     if (password.length < 8) {
       return NextResponse.json(
         { error: 'Parola trebuie să conțină cel puțin 8 caractere.' }, 
@@ -20,7 +19,6 @@ export async function POST(request: Request) {
     }
 
     // FIX 4.2: Stocare sigură a parolelor (Hashing + Salt)
-    // Generăm un hash sigur folosind bcrypt cu un cost factor de 10
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
@@ -36,8 +34,6 @@ export async function POST(request: Request) {
       .select();
 
     if (error) {
-      // FIX BONUS: Nu mai returnăm eroarea brută din baza de date către client
-      // Previne Information Disclosure (OWASP)
       return NextResponse.json({ error: 'Acest email este deja utilizat sau a apărut o eroare.' }, { status: 400 });
     }
 

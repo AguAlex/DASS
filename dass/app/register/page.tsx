@@ -25,7 +25,7 @@ export default function RegisterPage() {
         const data = await res.json();
 
         if (res.ok) {
-        setMessage(`Succes: ${data.message} (Parola ta a fost salvata in clar)`);
+        setMessage(`Succes: ${data.message}`);
         setTimeout(() => {
             router.push('/login');
             }, 1500);

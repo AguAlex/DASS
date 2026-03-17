@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { supabase } from '@/app/lib/supabase';
 import bcrypt from 'bcrypt';
+import { logAction } from '@/app/lib/audit';
 
 // FIX 4.3: Rate Limiting (Brute Force Protection)
-// Stocăm în memorie IP-urile și numărul de încercări (simplu, pentru PoC)
+// Stocăm în memorie IP-urile și numărul de încercări
 const rateLimit = new Map<string, { count: number; expiresAt: number }>();
 
 export async function POST(request: Request) {
@@ -18,6 +19,7 @@ export async function POST(request: Request) {
     const rateData = rateLimit.get(ip);
     if (rateData && now < rateData.expiresAt) {
       if (rateData.count >= maxRequests) {
+        await logAction(null, 'LOGIN_FAILED_RATE_LIMIT', 'Prea multe încercări eșuate', ip);
         return NextResponse.json(
           { error: 'Prea multe încercări eșuate. Cont blocat temporar (15 min).' },
           { status: 429 } // Status specific pentru Rate Limit
@@ -38,12 +40,13 @@ export async function POST(request: Request) {
     const isPasswordValid = user ? await bcrypt.compare(password, user.password_hash) : false;
 
     if (!user || !isPasswordValid) {
+      await logAction(user ? user.id : null, 'LOGIN_FAILED', `Email încercat: ${email}`, ip);
       return NextResponse.json({ error: 'Email sau parolă incorectă' }, { status: 401 });
     }
 
     // Resetăm contorul de rate limit la succes
     rateLimit.delete(ip);
-
+    await logAction(user.id, 'LOGIN_SUCCESS', 'Autentificare reușită', ip);
     // FIX 4.5: Gestionarea Sigură a Sesiunilor
     // Creăm un token robust și setăm flag-urile de securitate
     const sessionToken = crypto.randomUUID(); // Generăm un ID de sesiune sigur

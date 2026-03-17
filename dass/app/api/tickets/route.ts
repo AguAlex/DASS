@@ -73,7 +73,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Preluăm parametrul de căutare din URL (ex: /api/tickets?search=eroare)
+
     const { searchParams } = new URL(request.url);
     const searchQuery = searchParams.get('search');
 
@@ -81,7 +81,7 @@ export async function GET(request: Request) {
 
     // Dacă utilizatorul a folosit funcția de Search, filtrăm rezultatele
     if (searchQuery) {
-      // Căutăm în titlu sau descriere folosind operatorul ilike (case-insensitive)
+
       query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
       
       // Logam faptul că userul a făcut o căutare
