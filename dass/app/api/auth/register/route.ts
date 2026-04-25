@@ -10,10 +10,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Email și parola sunt obligatorii' }, { status: 400 });
     }
 
-    // FIX 4.1: Password Policy (Lungime minima si complexitate)
-    if (password.length < 8) {
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+
+    if (!passwordRegex.test(password)) {
       return NextResponse.json(
-        { error: 'Parola trebuie să conțină cel puțin 8 caractere.' }, 
+        { 
+          error: 'Parola trebuie să aibă minim 8 caractere și să includă cel puțin o literă mare, una mică și un caracter special.' 
+        }, 
         { status: 400 }
       );
     }
