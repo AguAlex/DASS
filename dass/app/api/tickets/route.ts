@@ -79,12 +79,10 @@ export async function GET(request: Request) {
 
     let query = supabase.from('tickets').select('*');
 
-    // Dacă utilizatorul a folosit funcția de Search, filtrăm rezultatele
     if (searchQuery) {
 
       query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
       
-      // Logam faptul că userul a făcut o căutare
       await logAction(user.id, 'TICKET_SEARCH', `Query: ${searchQuery}`, ip);
     }
 
