@@ -1,4 +1,26 @@
-import { expect, test, describe } from 'vitest';
+import { expect, test, describe, vi } from 'vitest';
+
+// Mock-uim Supabase pentru a opri request-urile de retea care blocheaza testul
+vi.mock('@/lib/supabase', () => ({
+  supabase: {
+    from: vi.fn().mockReturnThis(),
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockResolvedValue({ data: [], error: null }),
+  },
+}));
+
+// Mock-uim Audit-ul pentru a nu incerca sa scrie in DB-ul fals
+vi.mock('@/lib/audit', () => ({
+  logAction: vi.fn().mockResolvedValue(true),
+}));
+
+// Mock-uim bcrypt pentru a nu consuma timp de procesor cu hashing-ul in teste
+vi.mock('bcrypt', () => ({
+  default: {
+    compare: vi.fn().mockResolvedValue(false),
+  }
+}));
+
 import { POST } from '../app/api/auth/login/route';
 
 describe('API Login - Security Tests', () => {
@@ -18,7 +40,6 @@ describe('API Login - Security Tests', () => {
       response = await POST(req);
     }
 
-    // Verificam rezultatul celei de-a 6-a incercari
     data = await response!.json();
 
     expect(response!.status).toBe(429);
